@@ -1,0 +1,11 @@
+linters:
+  enable-all: true
+  exclude-use-default: false
+  disable:
+    - exhaustivestruct
+    - forbidigo
+    - golint
+    - interfacer
+    - ireturn
+    - maligned
+    - scopelint
