@@ -28,7 +28,7 @@ ll.SetLevel("Server.Process", "debug")
 ll.SetLevel("Server.Process", "info")
 ```
 
-### httplog
+### HTTP Logging Handler
 
 ```golang
 logger, _ := zap.NewProduction()
@@ -38,6 +38,6 @@ r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
     w.Write([]byte("This is a catch-all route"))
 })
 
-loggedRouter := httplog.LoggingHTTPHandler(logger, r)
+loggedRouter := zaptool.LoggingHTTPHandler(logger, r)
 http.ListenAndServe(":1123", loggedRouter)
 ```
