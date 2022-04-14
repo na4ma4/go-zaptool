@@ -9,3 +9,9 @@ linters:
     - ireturn
     - maligned
     - scopelint
+
+linters-settings:
+  varnamelen:
+    ignore-names:
+      - err
+      - ts

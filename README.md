@@ -27,3 +27,17 @@ ll.SetLevel("Server.Process", "debug")
 
 ll.SetLevel("Server.Process", "info")
 ```
+
+### httplog
+
+```golang
+logger, _ := zap.NewProduction()
+defer logger.Sync() // flushes buffer, if any
+r := mux.NewRouter()
+r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+    w.Write([]byte("This is a catch-all route"))
+})
+
+loggedRouter := httplog.LoggingHTTPHandler(logger, r)
+http.ListenAndServe(":1123", loggedRouter)
+```
