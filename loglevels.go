@@ -37,6 +37,10 @@ func (a *LogLevels) NewLevel(name string) *zap.AtomicLevel {
 	a.lock.Lock()
 	defer a.lock.Unlock()
 
+	if v, ok := a.levels[name]; ok {
+		return v
+	}
+
 	atom := zap.NewAtomicLevelAt(zapcore.InfoLevel)
 	a.levels[name] = &atom
 
