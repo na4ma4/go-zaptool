@@ -15,6 +15,11 @@ const (
 	loggerCallerSkip = 2
 )
 
+const (
+	HeaderUsername = "X-Logging-Username"
+	HeaderNoop     = "X-Logging-Noop"
+)
+
 // ErrUnimplemented is returned when a method is unimplemented.
 var ErrUnimplemented = errors.New("unimplemented method")
 
@@ -30,6 +35,7 @@ func (h loggingHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	t := time.Now()
 	logger := makeLogger(w)
 	url := *req.URL
+	req.Header.Del(HeaderNoop)
 	h.handler.ServeHTTP(logger, req)
 	writeLog(h.logger, req, url, t, logger.Status(), logger.Size())
 }
@@ -103,10 +109,14 @@ func (l *responseLogger) Flush() {
 // ts is the timestamp with which the entry should be logged.
 // status and size are used to provide the response HTTP status and size.
 func writeLog(logger *zap.Logger, req *http.Request, url url.URL, ts time.Time, status, size int) {
+	if req.Header.Get(HeaderNoop) != "" {
+		return
+	}
+
 	// Extract `X-Logging-Username` from request, added by authentication function earlier in process.
 	username := "-"
-	if req.Header.Get("X-Logging-Username") != "" {
-		username = req.Header.Get("X-Logging-Username")
+	if req.Header.Get(HeaderUsername) != "" {
+		username = req.Header.Get(HeaderUsername)
 	}
 
 	host, _, err := net.SplitHostPort(req.RemoteAddr)
