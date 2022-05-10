@@ -116,7 +116,7 @@ func writeLog(logger *zap.Logger, req *http.Request, url url.URL, ts time.Time, 
 	// Extract `X-Logging-Username` from request, added by authentication function earlier in process.
 	username := "-"
 	if req.Header.Get(HeaderUsername) != "" {
-		username = req.Header.Get(HeaderUsername)
+		username = sanitizeUsername(req.Header.Get(HeaderUsername))
 	}
 
 	host, _, err := net.SplitHostPort(req.RemoteAddr)
@@ -140,12 +140,12 @@ func writeLog(logger *zap.Logger, req *http.Request, url url.URL, ts time.Time, 
 		zap.String("username", username),
 		zap.String("timestamp", ts.Format(time.RFC3339Nano)),
 		zap.String("method", req.Method),
-		zap.String("uri", uri),
+		zap.String("uri", sanitizeURI(uri)),
 		zap.String("proto", req.Proto),
 		zap.Int("status", status),
 		zap.Int("size", size),
-		zap.String("referer", req.Referer()),
-		zap.String("user-agent", req.UserAgent()),
+		zap.String("referer", sanitizeURI(req.Referer())),
+		zap.String("user-agent", sanitizeUserAgent(req.UserAgent())),
 		zap.Duration("request-time", time.Since(ts)),
 	)
 }
