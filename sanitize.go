@@ -8,15 +8,15 @@ import (
 var (
 	//nolint:gochecknoglobals // same as html.htmlEscaper.
 	userAgentEscaper = strings.NewReplacer(
-		"\n", "\\n",
-		"\r", "\\r",
+		"\n", "",
+		"\r", "",
 		"+", " ",
 		"\000", "\\0",
 	)
 	//nolint:gochecknoglobals // same as html.htmlEscaper.
 	uriEscaper = strings.NewReplacer(
-		"\n", "\\n",
-		"\r", "\\r",
+		"\n", "",
+		"\r", "",
 		"\000", "\\0",
 	)
 )
