@@ -26,6 +26,7 @@ func NewLogLevels(logger *zap.Logger) *LogLevels {
 		logger:  logger,
 		iLogger: logger,
 		levels:  map[string]*zap.AtomicLevel{},
+		lock:    sync.RWMutex{},
 	}
 	out.iLogger = out.Named("Internal.LogLevels")
 

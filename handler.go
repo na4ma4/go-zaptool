@@ -49,7 +49,7 @@ type loggingResponseWriter interface {
 }
 
 func makeLogger(w http.ResponseWriter) loggingResponseWriter {
-	return &responseLogger{w: w, status: http.StatusOK}
+	return &responseLogger{w: w, status: http.StatusOK, size: 0}
 }
 
 // responseLogger is wrapper of http.ResponseWriter that keeps track of its HTTP

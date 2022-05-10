@@ -9,6 +9,7 @@ linters:
     - ireturn
     - maligned
     - scopelint
+    - unused
 
 linters-settings:
   varnamelen:
