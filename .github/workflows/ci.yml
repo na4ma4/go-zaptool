@@ -48,7 +48,7 @@ jobs:
       run: make lint
 
     - name: Run GolangCI-Lint
-      uses: golangci/golangci-lint-action@v3.1.0
+      uses: golangci/golangci-lint-action@v3.2.0
       with:
         skip-cache: true
         version: latest
