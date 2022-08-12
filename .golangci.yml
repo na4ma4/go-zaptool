@@ -16,3 +16,4 @@ linters-settings:
     ignore-names:
       - err
       - ts
+      - lh

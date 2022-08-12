@@ -39,12 +39,14 @@ func (c *levelWrapCore) Check(ent zapcore.Entry, ce *zapcore.CheckedEntry) *zapc
 //
 // If called, Write should always log the Entry and Fields; it should not
 // replicate the logic of Check.
+//
 //nolint:wrapcheck // simple wrapper for a *zap.Logger core.
 func (c *levelWrapCore) Write(ent zapcore.Entry, fields []zapcore.Field) error {
 	return c.c.Write(ent, fields)
 }
 
 // Sync flushes buffered logs (if any).
+//
 //nolint:wrapcheck // simple wrapper for a *zap.Logger core.
 func (c *levelWrapCore) Sync() error {
 	return c.c.Sync()

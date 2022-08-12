@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 const (
@@ -28,6 +29,7 @@ var ErrUnimplemented = errors.New("unimplemented method")
 type loggingHandler struct {
 	logger  *zap.Logger
 	handler http.Handler
+	opts    *loggingOptions
 }
 
 // ServeHTTP wraps the next handler ServeHTTP.
@@ -37,7 +39,7 @@ func (h loggingHandler) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 	url := *req.URL
 	req.Header.Del(HeaderNoop)
 	h.handler.ServeHTTP(logger, req)
-	writeLog(h.logger, req, url, t, logger.Status(), logger.Size())
+	writeLog(&h, req, url, t, logger.Status(), logger.Size())
 }
 
 type loggingResponseWriter interface {
@@ -105,10 +107,18 @@ func (l *responseLogger) Flush() {
 	}
 }
 
+func zapFieldOrSkip(returnField bool, field zapcore.Field) zapcore.Field {
+	if returnField {
+		return field
+	}
+
+	return zap.Skip()
+}
+
 // writeLog writes a log entry for req to w in Apache Combined Log Format.
 // ts is the timestamp with which the entry should be logged.
 // status and size are used to provide the response HTTP status and size.
-func writeLog(logger *zap.Logger, req *http.Request, url url.URL, ts time.Time, status, size int) {
+func writeLog(lh *loggingHandler, req *http.Request, url url.URL, ts time.Time, status, size int) {
 	if req.Header.Get(HeaderNoop) != "" {
 		return
 	}
@@ -133,41 +143,42 @@ func writeLog(logger *zap.Logger, req *http.Request, url url.URL, ts time.Time, 
 		uri = url.RequestURI()
 	}
 
-	logger.Info(
+	fields := []zapcore.Field{
+		zap.Namespace("http"),            // 0
+		zap.String("host", host),         // 1
+		zap.String("username", username), // 2
+		zapFieldOrSkip(lh.opts.includeTimestamp, zap.String("timestamp", ts.Format(time.RFC3339Nano))), // 3
+		zap.String("method", req.Method),                                                    // 4
+		zap.String("uri", sanitizeURI(uri)),                                                 // 5
+		zap.String("proto", req.Proto),                                                      // 6
+		zap.Int("status", status),                                                           // 7
+		zap.Int("size", size),                                                               // 8
+		zap.String("referer", sanitizeURI(req.Referer())),                                   // 9
+		zap.String("user-agent", sanitizeUserAgent(req.UserAgent())),                        // 10
+		zapFieldOrSkip(lh.opts.includeTiming, zap.Duration("request-time", time.Since(ts))), // 11
+	}
+
+	lh.logger.Info(
 		"Request",
-		zap.Namespace("http"),
-		zap.String("host", host),
-		zap.String("username", username),
-		zap.String("timestamp", ts.Format(time.RFC3339Nano)),
-		zap.String("method", req.Method),
-		zap.String("uri", sanitizeURI(uri)),
-		zap.String("proto", req.Proto),
-		zap.Int("status", status),
-		zap.Int("size", size),
-		zap.String("referer", sanitizeURI(req.Referer())),
-		zap.String("user-agent", sanitizeUserAgent(req.UserAgent())),
-		zap.Duration("request-time", time.Since(ts)),
+		fields...,
 	)
 }
 
 // LoggingHTTPHandler return a http.Handler that wraps h and logs requests to out using
 // a *zap.Logger.
-//
-// Example:
-//
-//  logger, _ := zap.NewProduction()
-//  defer logger.Sync() // flushes buffer, if any
-//  r := mux.NewRouter()
-//  r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-//  	w.Write([]byte("This is a catch-all route"))
-//  })
-//
-//  loggedRouter := httplog.LoggingHTTPHandler(logger, r)
-//  http.ListenAndServe(":1123", loggedRouter)
-//
-func LoggingHTTPHandler(logger *zap.Logger, h http.Handler) http.Handler {
+func LoggingHTTPHandler(logger *zap.Logger, httpHandler http.Handler, opts ...loggingOptionsFunc) http.Handler {
+	opt := &loggingOptions{
+		includeTiming:    true,
+		includeTimestamp: true,
+	}
+
+	for _, f := range opts {
+		f(opt)
+	}
+
 	return loggingHandler{
 		logger.WithOptions(zap.AddCallerSkip(loggerCallerSkip)),
-		h,
+		httpHandler,
+		opt,
 	}
 }
