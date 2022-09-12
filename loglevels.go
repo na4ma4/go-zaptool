@@ -67,17 +67,18 @@ func (a *LogLevels) parseLevel(v interface{}) (zapcore.Level, bool) {
 	return zapcore.InfoLevel, false
 }
 
-func (a *LogLevels) isWildcard(c string) bool {
-	if strings.HasSuffix(c, "*") {
-		return true
-	}
+// can't remember what this was for, but it's unused code now.
+// func (a *LogLevels) isWildcard(c string) bool {
+// 	if strings.HasSuffix(c, "*") {
+// 		return true
+// 	}
 
-	if strings.HasPrefix(c, "*") {
-		return true
-	}
+// 	if strings.HasPrefix(c, "*") {
+// 		return true
+// 	}
 
-	return false
-}
+// 	return false
+// }
 
 // doesKeyMatch tests if a key matches.
 func (a *LogLevels) doesKeyMatch(key, check string) bool {
