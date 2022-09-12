@@ -1,6 +1,6 @@
 # go-zaptool
 
-![CI](https://github.com/na4ma4/go-zaptool/workflows/CI/badge.svg)
+[![CI](https://github.com/na4ma4/go-zaptool/workflows/CI/badge.svg)](https://github.com/na4ma4/go-zaptool/actions/workflows/ci.yml)
 [![GoDoc](https://godoc.org/github.com/na4ma4/go-zaptool/?status.svg)](https://godoc.org/github.com/na4ma4/go-zaptool)
 [![GitHub issues](https://img.shields.io/github/issues/na4ma4/go-zaptool)](https://github.com/na4ma4/go-zaptool/issues)
 [![GitHub forks](https://img.shields.io/github/forks/na4ma4/go-zaptool)](https://github.com/na4ma4/go-zaptool/network)
