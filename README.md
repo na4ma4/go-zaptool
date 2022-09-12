@@ -9,6 +9,12 @@
 
 [uber-go/zap](https://github.com/uber-go/zap) wrappers and tools.
 
+## Install
+
+```shell
+go get -u github.com/na4ma4/go-zaptool
+```
+
 ## Tools
 
 ### LogLevels
