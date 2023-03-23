@@ -1,8 +1,9 @@
 package zaptool
 
 type loggingOptions struct {
-	includeTiming    bool
-	includeTimestamp bool
+	includeTiming        bool
+	includeTimestamp     bool
+	includeXForwardedFor bool
 }
 
 type loggingOptionsFunc func(o *loggingOptions)
@@ -22,5 +23,14 @@ func LoggingOptionTiming(state bool) loggingOptionsFunc {
 func LoggingOptionTimestamp(state bool) loggingOptionsFunc {
 	return func(o *loggingOptions) {
 		o.includeTimestamp = state
+	}
+}
+
+// LoggingOptionForwardedFor defines if the logging should contain a `http.forwarded_for` field.
+//
+//nolint:revive // deliberately not-exported function type.
+func LoggingOptionForwardedFor(state bool) loggingOptionsFunc {
+	return func(o *loggingOptions) {
+		o.includeXForwardedFor = state
 	}
 }

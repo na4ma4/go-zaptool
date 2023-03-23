@@ -156,6 +156,7 @@ func writeLog(lh *loggingHandler, req *http.Request, url url.URL, ts time.Time, 
 		zap.String("referer", sanitizeURI(req.Referer())),                                   // 9
 		zap.String("user-agent", sanitizeUserAgent(req.UserAgent())),                        // 10
 		zapFieldOrSkip(lh.opts.includeTiming, zap.Duration("request-time", time.Since(ts))), // 11
+		zapFieldOrSkip(lh.opts.includeXForwardedFor, zap.String("forwarded_for", req.Header.Get("X-Forwarded-For"))), // 12
 	}
 
 	lh.logger.Info(
@@ -168,8 +169,9 @@ func writeLog(lh *loggingHandler, req *http.Request, url url.URL, ts time.Time, 
 // a *zap.Logger.
 func LoggingHTTPHandler(logger *zap.Logger, httpHandler http.Handler, opts ...loggingOptionsFunc) http.Handler {
 	opt := &loggingOptions{
-		includeTiming:    true,
-		includeTimestamp: true,
+		includeTiming:        true,
+		includeTimestamp:     true,
+		includeXForwardedFor: false,
 	}
 
 	for _, f := range opts {

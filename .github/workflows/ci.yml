@@ -3,11 +3,7 @@ name: "CI"
 on:
   pull_request:
   push:
-    branches:
-    - '*'
-    tags:
-    - 'v*'
 
 jobs:
   unittest:
-    uses: na4ma4/actions/.github/workflows/unit-test.yml@v1
+    uses: na4ma4/actions/.github/workflows/unit-test.yml@main

@@ -14,7 +14,7 @@ import (
 
 func ExampleLoggingHTTPHandler() {
 	logger := zap.NewExample()
-	defer logger.Sync()
+	defer func() { _ = logger.Sync() }()
 
 	loggedRouter := zaptool.LoggingHTTPHandler(
 		logger,
