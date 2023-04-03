@@ -24,23 +24,35 @@ type LogManager interface {
 // the individual loggers are not kept, but levels are kept
 // indexed by name.
 type LogLevels struct {
-	logger  *zap.Logger
-	iLogger *zap.Logger
-	levels  map[string]*zap.AtomicLevel
-	lock    sync.RWMutex
+	coreLogger *zap.Logger
+	iLogger    *zap.Logger
+	levels     map[string]*zap.AtomicLevel
+	lock       sync.RWMutex
 }
 
 // NewLogLevels returns a new LogLevels ready for use.
-func NewLogLevels(logger *zap.Logger) *LogLevels {
+func NewLogLevels(coreLogger *zap.Logger, opts ...interface{}) *LogLevels {
 	out := &LogLevels{
-		logger:  logger,
-		iLogger: logger,
-		levels:  map[string]*zap.AtomicLevel{},
-		lock:    sync.RWMutex{},
+		coreLogger: coreLogger,
+		iLogger:    coreLogger,
+		levels:     map[string]*zap.AtomicLevel{},
+		lock:       sync.RWMutex{},
 	}
-	out.iLogger = out.Named("Internal.LogLevels")
+	out.iLogger = out.Named("Internal.LogLevels", opts...)
+
+	for _, opti := range opts {
+		if opt, ok := opti.(func(*LogLevels)); ok {
+			opt(out)
+		}
+	}
 
 	return out
+}
+
+func LogLevelsInternalLevel(lvl interface{}) func(*LogLevels) {
+	return func(ll *LogLevels) {
+		_ = ll.SetLevel("Internal.LogLevels", lvl)
+	}
 }
 
 // NewLevel returns a zap.AtomicLevel reference to the stored named level.
@@ -189,8 +201,7 @@ func (a *LogLevels) DeleteLevel(name string) {
 // try to determine if they represent a log level (by string, zapcore.Level or *zap.AtomicLevel).
 func (a *LogLevels) Named(name string, opts ...interface{}) *zap.Logger {
 	lvl := a.NewLevel(name)
-
-	if a.logger.Core().Enabled(zapcore.DebugLevel) {
+	if a.coreLogger.Core().Enabled(zapcore.DebugLevel) {
 		lvl.SetLevel(zapcore.DebugLevel)
 	}
 
@@ -203,7 +214,7 @@ func (a *LogLevels) Named(name string, opts ...interface{}) *zap.Logger {
 		}
 	}
 
-	return a.logger.WithOptions(zap.WrapCore(func(c zapcore.Core) zapcore.Core {
+	return a.coreLogger.WithOptions(zap.WrapCore(func(c zapcore.Core) zapcore.Core {
 		return &levelWrapCore{
 			lvl: *lvl,
 			c:   c,
