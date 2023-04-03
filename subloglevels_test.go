@@ -47,7 +47,7 @@ func TestSubLogLevels_Names(t *testing.T) {
 		t.Error("should not contain a 'should not log' message")
 	}
 
-	if (len(observedLogs.All())) != 3 {
-		t.Errorf("observed log count not 3: %d", len(observedLogs.All()))
+	if len(observedLogs.All()) != 3 {
+		t.Errorf("should contain 3 log messages, instead contained %d messages", len(observedLogs.All()))
 	}
 }

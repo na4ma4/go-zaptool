@@ -37,7 +37,7 @@ func TestLogLevels_LogAtLevel(t *testing.T) {
 
 	loglvls := zaptool.NewLogLevels(logger)
 	if loglvls.String() != "Internal.LogLevels:info" {
-		t.Error("Initial log level for Internal.LogLevels is not debug")
+		t.Error("Initial log level for Internal.LogLevels is not info")
 	}
 
 	testLogger := loglvls.Named("TestLogger")
@@ -59,7 +59,54 @@ func TestLogLevels_LogAtLevel(t *testing.T) {
 	testLogger.Warn("[debug] should log")
 
 	if len(observedLogs.All()) != 6 {
-		t.Error("should contain 3 log messages")
+		t.Errorf("should contain 6 log messages, instead contained %d messages", len(observedLogs.All()))
+	}
+
+	if len(observedLogs.Filter(func(le observer.LoggedEntry) bool {
+		return strings.Contains(le.Message, "not")
+	}).All()) > 0 {
+		for _, le := range observedLogs.All() {
+			if strings.Contains(le.Message, "not") {
+				t.Logf("this message should not have been logged: %s", le.Message)
+			}
+		}
+		t.Error("should not contain a 'should not log' message")
+	}
+}
+
+func TestLogLevels_NotALevel(t *testing.T) {
+	fac, observedLogs := observer.New(zapcore.InfoLevel)
+	logger := zap.New(fac)
+
+	loglvls := zaptool.NewLogLevels(logger)
+	if loglvls.String() != "Internal.LogLevels:info" {
+		t.Error("Initial log level for Internal.LogLevels is not info")
+	}
+
+	testLogger := loglvls.Named("TestLogger")
+
+	if loglvls.String() != "Internal.LogLevels:info,TestLogger:info" {
+		t.Error("Initial log level for TestLogger is not info")
+	}
+
+	testLogger.Debug("[info] should not log")
+	testLogger.Info("[warn] should log")
+	testLogger.Warn("[warn] should log")
+
+	loglvls.SetLevel("TestLogger", zapcore.InvalidLevel)
+
+	testLogger.Debug("[warn] should not log")
+	testLogger.Info("[warn] should not log")
+	testLogger.Warn("[warn] should not log")
+
+	t.Logf("Levels: %s", loglvls.String())
+
+	if loglvls.String() != "Internal.LogLevels:info,TestLogger:invalid" {
+		t.Error("Updated log level for TestLogger is not invalid")
+	}
+
+	if len(observedLogs.All()) != 2 {
+		t.Errorf("should contain 2 log messages, instead contained %d messages", len(observedLogs.All()))
 	}
 
 	if len(observedLogs.Filter(func(le observer.LoggedEntry) bool {
