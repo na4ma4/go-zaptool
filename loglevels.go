@@ -10,6 +10,16 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+type LogManager interface {
+	NewLevel(name string) *zap.AtomicLevel
+	Named(name string, opts ...interface{}) *zap.Logger
+	Iterator(f func(string, *zap.AtomicLevel) error) error
+	IsLogger(name string) bool
+	SetLevel(name string, lvl interface{}) bool
+	DeleteLevel(name string)
+	String() string
+}
+
 // LogLevels provides a wrapper for multiple *zap.Logger levels,
 // the individual loggers are not kept, but levels are kept
 // indexed by name.
@@ -67,25 +77,13 @@ func (a *LogLevels) parseLevel(v interface{}) (zapcore.Level, bool) {
 	return zapcore.InfoLevel, false
 }
 
-// can't remember what this was for, but it's unused code now.
-// func (a *LogLevels) isWildcard(c string) bool {
-// 	if strings.HasSuffix(c, "*") {
-// 		return true
-// 	}
-
-// 	if strings.HasPrefix(c, "*") {
-// 		return true
-// 	}
-
-// 	return false
-// }
-
 // doesKeyMatch tests if a key matches.
 func (a *LogLevels) doesKeyMatch(key, check string) bool {
 	if strings.EqualFold(key, check) {
 		return true
 	}
 
+	// if is is a single '*' then it's a wildcard and true.
 	if len(check) == 1 && check == "*" {
 		return true
 	}
@@ -119,7 +117,7 @@ func (a *LogLevels) SetLevel(name string, lvl interface{}) bool {
 		if a.doesKeyMatch(itemKey, name) {
 			if level, ok := a.parseLevel(lvl); ok {
 				a.iLogger.Debug(
-					"setting level for name (wildcard)",
+					"setting level for name",
 					zap.String("name", name),
 					zap.String("match", itemKey),
 					zap.String("level", level.String()),
@@ -149,6 +147,37 @@ func (a *LogLevels) String() string {
 	sort.Strings(out)
 
 	return strings.Join(out, ",")
+}
+
+// Iterator runs a callback function over the levels map item by item.
+func (a *LogLevels) Iterator(f func(string, *zap.AtomicLevel) error) error {
+	a.lock.RLock()
+	defer a.lock.RUnlock()
+
+	for k, v := range a.levels {
+		if err := f(k, v); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// IsLogger returns true if there is a logger that matches.
+func (a *LogLevels) IsLogger(name string) bool {
+	a.lock.RLock()
+	defer a.lock.RUnlock()
+
+	_, ok := a.levels[name]
+	return ok
+}
+
+// DeleteLevel removes the entry from the list.
+func (a *LogLevels) DeleteLevel(name string) {
+	a.lock.Lock()
+	defer a.lock.Unlock()
+
+	delete(a.levels, name)
 }
 
 // Named returns a named *zap.Logger if any additional parameters are specified it will

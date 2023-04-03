@@ -1,6 +1,6 @@
 # This code is licensed under the terms of the MIT license.
 
-## Golden config for golangci-lint v1.52.1
+## Golden config for golangci-lint v1.51.2
 #
 # This is the best config for golangci-lint based on my experience and opinion.
 # It is very strict, but not extremely strict.
@@ -32,6 +32,10 @@ linters-settings:
     # Such cases aren't reported by default.
     # Default: false
     check-type-assertions: true
+    # List of functions to exclude from checking, where each entry is a single function to exclude.
+    # See https://github.com/kisielk/errcheck#excluding-functions for details.
+    exclude-functions:
+      - (*go.uber.org/zap.Logger).Sync
 
   exhaustive:
     # Program elements to check for exhaustiveness.
@@ -61,9 +65,6 @@ linters-settings:
       - "^github.com/prometheus/client_golang/.+Opts$"
       - "^github.com/spf13/cobra.Command$"
       - "^github.com/spf13/cobra.CompletionOptions$"
-      - "^github.com/stretchr/testify/mock.Mock$"
-      - "^github.com/testcontainers/testcontainers-go.+Request$"
-      - "^github.com/testcontainers/testcontainers-go.FromDockerfile$"
       - "^golang.org/x/tools/go/analysis.Analyzer$"
       - "^google.golang.org/protobuf/.+Options$"
       - "^gopkg.in/yaml.v3.Node$"
@@ -98,6 +99,12 @@ linters-settings:
         skipRecvDeref: false
 
   gomnd:
+    # List of numbers to exclude from analysis.
+    # The numbers should be written as string.
+    # Values always ignored: "1", "1.0", "0" and "0.0"
+    # Default: []
+    ignored-numbers:
+      - '2'
     # List of function patterns to exclude from analysis.
     # Values always ignored: `time.Date`,
     # `strconv.FormatInt`, `strconv.FormatUint`, `strconv.FormatFloat`,
@@ -145,7 +152,7 @@ linters-settings:
       shadow:
         # Whether to be strict about shadowing; can be noisy.
         # Default: false
-        strict: true
+        strict: false
 
   nakedret:
     # Make an issue if func has more lines of code than this setting, and it has naked returns.
@@ -175,6 +182,11 @@ linters-settings:
     # Default: false
     all: true
 
+  staticcheck:
+    # Disable SA1019 check for now (openpgp is deprecated).
+    checks:
+      - "all"
+      - "-SA1019"
 
 linters:
   disable-all: true
@@ -299,10 +311,14 @@ issues:
   max-same-issues: 50
 
   exclude-rules:
+    - source: "^//\\s*go:generate\\s"
+      linters: [ lll ]
     - source: "(noinspection|TODO)"
       linters: [ godot ]
     - source: "//noinspection"
       linters: [ gocritic ]
+    - source: "^\\s+if _, ok := err\\.\\([^.]+\\.InternalError\\); ok {"
+      linters: [ errorlint ]
     - path: "_test\\.go"
       linters:
         - bodyclose
