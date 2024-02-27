@@ -154,7 +154,7 @@ func (a *LogLevels) String() string {
 
 	for k, v := range a.levels {
 		if v.Level() == zapcore.InvalidLevel {
-			out = append(out, fmt.Sprintf("%s:invalid", k))
+			out = append(out, k+":invalid")
 			continue
 		}
 
