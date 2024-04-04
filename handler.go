@@ -160,7 +160,8 @@ func writeLog(lh *loggingHandler, req *http.Request, url url.URL, ts time.Time, 
 		zapFieldOrSkip(lh.opts.includeXForwardedFor, zap.String("forwarded_for", req.Header.Get("X-Forwarded-For"))), // 12
 	}
 
-	lh.logger.Info(
+	lh.logger.Log(
+		lh.opts.logLevel,
 		"Request",
 		fields...,
 	)
@@ -173,6 +174,7 @@ func LoggingHTTPHandler(logger *zap.Logger, httpHandler http.Handler, opts ...lo
 		includeTiming:        true,
 		includeTimestamp:     true,
 		includeXForwardedFor: false,
+		logLevel:             zap.InfoLevel,
 	}
 
 	for _, f := range opts {
@@ -193,6 +195,7 @@ func LoggingHTTPHandlerWrapper(logger *zap.Logger, opts ...loggingOptionsFunc) f
 		includeTiming:        true,
 		includeTimestamp:     true,
 		includeXForwardedFor: false,
+		logLevel:             zap.InfoLevel,
 	}
 
 	for _, f := range opts {

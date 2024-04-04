@@ -1,9 +1,12 @@
 package zaptool
 
+import "go.uber.org/zap/zapcore"
+
 type loggingOptions struct {
 	includeTiming        bool
 	includeTimestamp     bool
 	includeXForwardedFor bool
+	logLevel             zapcore.Level
 }
 
 type loggingOptionsFunc func(o *loggingOptions)
@@ -32,5 +35,15 @@ func LoggingOptionTimestamp(state bool) loggingOptionsFunc {
 func LoggingOptionForwardedFor(state bool) loggingOptionsFunc {
 	return func(o *loggingOptions) {
 		o.includeXForwardedFor = state
+	}
+}
+
+// LoggingOptionLogLevel defines the log level that http messages should output to,
+// defaults to Info.
+//
+//nolint:revive // deliberately not-exported function type.
+func LoggingOptionLogLevel(level zapcore.Level) loggingOptionsFunc {
+	return func(o *loggingOptions) {
+		o.logLevel = level
 	}
 }
