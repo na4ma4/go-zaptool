@@ -13,7 +13,8 @@ import (
 )
 
 const (
-	loggerCallerSkip = 2
+	loggerCallerSkip    = 2
+	chiLoggerCallerSkip = 2
 )
 
 const (
@@ -178,9 +179,33 @@ func LoggingHTTPHandler(logger *zap.Logger, httpHandler http.Handler, opts ...lo
 		f(opt)
 	}
 
+	logger = logger.WithOptions(zap.AddCallerSkip(loggerCallerSkip))
+
 	return loggingHandler{
-		logger.WithOptions(zap.AddCallerSkip(loggerCallerSkip)),
+		logger,
 		httpHandler,
 		opt,
+	}
+}
+
+func LoggingHTTPHandlerWrapper(logger *zap.Logger, opts ...loggingOptionsFunc) func(next http.Handler) http.Handler {
+	opt := &loggingOptions{
+		includeTiming:        true,
+		includeTimestamp:     true,
+		includeXForwardedFor: false,
+	}
+
+	for _, f := range opts {
+		f(opt)
+	}
+
+	logger = logger.WithOptions(zap.AddCallerSkip(chiLoggerCallerSkip))
+
+	return func(next http.Handler) http.Handler {
+		return loggingHandler{
+			logger,
+			next,
+			opt,
+		}
 	}
 }
