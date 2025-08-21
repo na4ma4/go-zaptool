@@ -1,4 +1,4 @@
-//nolint:gocritic,lll // Example code, ignore output comment line and log.Fatal.
+//nolint:gocritic,lll,depguard // Example code, ignore output comment line and log.Fatal.
 package zaptool_test
 
 import (

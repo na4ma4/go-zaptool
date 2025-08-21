@@ -2,3 +2,4 @@
 /vendor
 /.makefiles
 /.vscode
+/dist

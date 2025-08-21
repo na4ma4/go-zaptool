@@ -136,7 +136,7 @@ func writeLog(lh *loggingHandler, req *http.Request, url url.URL, ts time.Time, 
 	}
 
 	uri := req.RequestURI
-	if req.ProtoMajor == 2 && req.Method == "CONNECT" {
+	if req.ProtoMajor == 2 && req.Method == http.MethodConnect {
 		uri = req.Host
 	}
 
@@ -157,7 +157,9 @@ func writeLog(lh *loggingHandler, req *http.Request, url url.URL, ts time.Time, 
 		zap.String("referer", sanitizeURI(req.Referer())),                                   // 9
 		zap.String("user-agent", sanitizeUserAgent(req.UserAgent())),                        // 10
 		zapFieldOrSkip(lh.opts.includeTiming, zap.Duration("request-time", time.Since(ts))), // 11
-		zapFieldOrSkip(lh.opts.includeXForwardedFor, zap.String("forwarded_for", req.Header.Get("X-Forwarded-For"))), // 12
+		zapFieldOrSkip(lh.opts.includeXForwardedFor,
+			zap.String("forwarded_for", req.Header.Get("X-Forwarded-For")),
+		), // 12
 	}
 
 	lh.logger.Log(
