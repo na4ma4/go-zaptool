@@ -6,7 +6,7 @@ toolchain go1.24.6
 
 require (
 	github.com/dosquad/mage v0.3.2
-	github.com/magefile/mage v1.15.0
+	github.com/magefile/mage v1.17.2
 )
 
 require (
