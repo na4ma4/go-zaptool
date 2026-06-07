@@ -7,6 +7,8 @@
 [![GitHub stars](https://img.shields.io/github/stars/na4ma4/go-zaptool)](https://github.com/na4ma4/go-zaptool/stargazers)
 [![GitHub license](https://img.shields.io/github/license/na4ma4/go-zaptool)](https://github.com/na4ma4/go-zaptool/blob/main/LICENSE)
 
+**NOTE: Archived, best-practice is to use log/slog now.**
+
 [uber-go/zap](https://github.com/uber-go/zap) wrappers and tools.
 
 ## Install
